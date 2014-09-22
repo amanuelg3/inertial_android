@@ -7,32 +7,80 @@
     android:paddingTop="@dimen/activity_vertical_margin" >
 
     <EditText
-        android:id="@+id/portEditText"
+        android:id="@+id/periodEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/addressEditText"
-        android:layout_centerHorizontal="true"
+        android:layout_alignLeft="@+id/portEditText"
+        android:layout_below="@+id/portEditText"
         android:ems="10"
-        android:inputType="number"
-        android:text="@string/default_port" />
+        android:text="@string/default_period" >
+
+        <requestFocus />
+    </EditText>
 
     <EditText
         android:id="@+id/addressEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/portEditText"
-        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="85dp"
         android:ems="10"
         android:text="@string/default_address" />
+
+    <EditText
+        android:id="@+id/portEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/addressEditText"
+        android:layout_below="@+id/addressEditText"
+        android:ems="10"
+        android:inputType="number"
+        android:text="@string/default_port" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/portEditText"
+        android:layout_alignRight="@+id/textView1"
+        android:text="@string/port_label" />
 
     <Button
         android:id="@+id/connectButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="49dp"
-        android:onClick="onConnectButtonClicked"
+        android:layout_alignLeft="@+id/button1"
+        android:layout_alignRight="@+id/button1"
+        android:layout_below="@+id/periodEditText"
+        android:layout_marginTop="54dp"
+        android:onClick="onConnectClicked"
         android:text="@string/connect_button" />
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/connectButton"
+        android:layout_centerHorizontal="true"
+        android:onClick="onDisconnectClicked"
+        android:text="@string/button_disconnect" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/periodEditText"
+        android:layout_alignRight="@+id/textView1"
+        android:text="@string/period_label" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/addressEditText"
+        android:layout_toLeftOf="@+id/addressEditText"
+        android:text="@string/address_label" />
 
 </RelativeLayout>
