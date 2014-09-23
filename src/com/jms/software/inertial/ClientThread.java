@@ -58,7 +58,7 @@ public class ClientThread extends Thread{
 		this.period = period;
 	}
 	
-	public void setData(String data){
+	public synchronized void setData(String data){
 		this.data=data;
 	}
 	

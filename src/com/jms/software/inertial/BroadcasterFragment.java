@@ -6,6 +6,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +24,7 @@ import android.hardware.SensorEventListener;
  * 
  */
 public class BroadcasterFragment extends Fragment implements SensorEventListener {
+	
 	private static final String ARG_HOSTADDRESS = "host_addres";
 	private static final String ARG_PORTNUMBER = "port_number";
 	private static final String ARG_PERIOD = "period";
@@ -38,6 +40,11 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 	
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
+	private AccelerationVector mAccelerationVect;
+	private long startTime;
+	
+	private String mData;
+	
 
 
 	/**
@@ -76,18 +83,21 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 		setRetainInstance(true);
 		mSensorManager = (SensorManager)getActivity().getSystemService(Activity.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-	}
-
-	@Override
-	public void onPause() {
-		// TODO Auto-generated method stub
-		super.onPause();
+		mAccelerationVect = new AccelerationVector();
 	}
 
 	@Override
 	public void onResume() {
-		// TODO Auto-generated method stub
 		super.onResume();
+		startTime = SystemClock.elapsedRealtime();
+		mSensorManager.registerListener(this, mAccelerometer , Sensor.TYPE_ACCELEROMETER);
+	}
+
+	@Override
+	public void onPause() {
+		//TODO Is it correct? Will be broadcasting without sensor.
+		super.onPause();
+		mSensorManager.unregisterListener(this);
 	}
 
 	/*@Override
@@ -122,6 +132,21 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 		mListener = null;
 	}
 	
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		mAccelerationVect.setValues(event.values);
+		prepareData();
+		if(ct!=null)
+			ct.setData(mData);
+		
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// Do nothing
+		
+	}
+
 	public void startBroadcasting(){
 		if(ct==null){
 			ct = new ClientThread(mHostAddress,mPortNumber,mPeriod);
@@ -130,7 +155,8 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 	}
 	
 	public void stopBroadcasting(){
-		ct.stopThread();
+		if(ct!=null)
+			ct.stopThread();
 		ct = null;																																									
 	}
 	
@@ -140,7 +166,22 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 		mPeriod = period;
 	}
 	
+	private void prepareData(){
+		mData =String.format("%3.3f %3.3f %3.3f %3.3f",
+									mAccelerationVect.getX(),
+									mAccelerationVect.getY(),
+									mAccelerationVect.getZ(),
+									getTimestamp());
+	}
 	
+	private float getTimestamp(){
+		return (float)(SystemClock.elapsedRealtime()-startTime)/1000;
+		
+	}
+	
+	
+	
+
 
 	/**
 	 * This interface must be implemented by activities that contain this
@@ -155,18 +196,40 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 		// TODO: Update argument type and name
 		public void onFragmentInteraction(Uri uri);
 	}
-
-
-
-	@Override
-	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-		// TODO Auto-generated method stub
+	
+	/**
+	 * This class stores acceleration vector.
+	 * @author Jakub
+	 *
+	 */
+	
+	private class AccelerationVector{
+		public float x,y,z;
 		
-	}
-
-	@Override
-	public void onSensorChanged(SensorEvent event) {
-		// TODO Auto-generated method stub
+		public AccelerationVector(){}
+		public AccelerationVector(float[] values){
+			setValues(values);
+		}
+		
+		public void setValues(float[] values){
+			x=values[0];
+			if(values.length >= 2){
+				y=values[1];
+				if(values.length>=3){
+					z=values[2];
+				}
+			}
+		}
+		
+		public float getX(){
+			return x;
+		}
+		public float getY(){
+			return y;
+		}
+		public float getZ(){
+			return z;
+		}
 		
 	}
 
