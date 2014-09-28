@@ -1,5 +1,7 @@
 package com.jms.software.inertial;
 
+import java.security.spec.MGF1ParameterSpec;
+
 import android.app.Activity;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -23,7 +25,7 @@ import android.hardware.SensorEventListener;
  * method to create an instance of this fragment.
  * 
  */
-public class BroadcasterFragment extends Fragment implements SensorEventListener {
+public class BroadcasterFragment extends Fragment{
 	
 	private static final String ARG_HOSTADDRESS = "host_addres";
 	private static final String ARG_PORTNUMBER = "port_number";
@@ -40,7 +42,9 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 	
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
-	private AccelerationVector mAccelerationVect;
+	private Sensor mGyro;
+	private DataVector mAccelerationVect;
+	private DataVector mAngularVeloVect;
 	private long startTime;
 	
 	private String mData;
@@ -78,26 +82,31 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 			mHostAddress = getArguments().getString(ARG_HOSTADDRESS);
 			mPortNumber = getArguments().getInt(ARG_PORTNUMBER);
 			mPeriod = getArguments().getInt(ARG_PERIOD);
+			startTime = SystemClock.elapsedRealtime();
 		}
 				
 		setRetainInstance(true);
 		mSensorManager = (SensorManager)getActivity().getSystemService(Activity.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		mAccelerationVect = new AccelerationVector();
+		mGyro = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE); 
+		mAccelerationVect = new DataVector();
+		mAngularVeloVect = new DataVector();
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		startTime = SystemClock.elapsedRealtime();
-		mSensorManager.registerListener(this, mAccelerometer , Sensor.TYPE_ACCELEROMETER);
+		
+		mSensorManager.registerListener(accelerometerListener, mAccelerometer , Sensor.TYPE_ACCELEROMETER);
+		mSensorManager.registerListener(gyroListener, mGyro, Sensor.TYPE_GYROSCOPE);
 	}
 
 	@Override
 	public void onPause() {
 		//TODO Is it correct? Will be broadcasting without sensor.
 		super.onPause();
-		mSensorManager.unregisterListener(this);
+		mSensorManager.unregisterListener(accelerometerListener);
+		mSensorManager.unregisterListener(gyroListener);
 	}
 
 	/*@Override
@@ -132,7 +141,7 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 		mListener = null;
 	}
 	
-	@Override
+	/*@Override
 	public void onSensorChanged(SensorEvent event) {
 		mAccelerationVect.setValues(event.values);
 		prepareData();
@@ -146,7 +155,7 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 		// Do nothing
 		
 	}
-
+*/
 	public void startBroadcasting(){
 		if(ct==null){
 			ct = new ClientThread(mHostAddress,mPortNumber,mPeriod);
@@ -167,10 +176,13 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 	}
 	
 	private void prepareData(){
-		mData =String.format("%3.3f %3.3f %3.3f %3.3f",
+		mData =String.format("%3.3f %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
 									mAccelerationVect.getX(),
 									mAccelerationVect.getY(),
 									mAccelerationVect.getZ(),
+									mAngularVeloVect.getX(),
+									mAngularVeloVect.getY(),
+									mAngularVeloVect.getZ(),
 									getTimestamp());
 	}
 	
@@ -197,17 +209,48 @@ public class BroadcasterFragment extends Fragment implements SensorEventListener
 		public void onFragmentInteraction(Uri uri);
 	}
 	
+	
+	
+	private SensorEventListener accelerometerListener = new SensorEventListener(){
+
+		@Override
+		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+
+		@Override
+		public void onSensorChanged(SensorEvent event) {	
+			mAccelerationVect.setValues(event.values);
+		}
+			
+	};
+	
+	private SensorEventListener gyroListener = new SensorEventListener() {
+
+		
+		@Override
+		public void onSensorChanged(SensorEvent event) {
+			mAngularVeloVect.setValues(event.values);
+			prepareData();
+			if(ct!=null){
+				ct.setData(mData);
+			}
+			
+		}
+		
+		@Override
+		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+	};
+	
+	
 	/**
 	 * This class stores acceleration vector.
 	 * @author Jakub
 	 *
 	 */
-	
-	private class AccelerationVector{
+	private class DataVector{
 		public float x,y,z;
 		
-		public AccelerationVector(){}
-		public AccelerationVector(float[] values){
+		public DataVector(){}
+		public DataVector(float[] values){
 			setValues(values);
 		}
 		
