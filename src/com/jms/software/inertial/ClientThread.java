@@ -16,6 +16,7 @@ public class ClientThread extends Thread{
 	private boolean isConnected;
 	private String data;
 	private String errorFeedback=null;
+	private static final String COMMAND_HALT = "__halt__";
 	
 	public ClientThread(String hostAddress, int portNumber, int period){
 		this.hostAddress=hostAddress;
@@ -63,6 +64,13 @@ public class ClientThread extends Thread{
 	}
 	
 	public void stopThread(){
+		setData(COMMAND_HALT);
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		isConnected=false;
 	}
 	public String getErrorFeedback(){

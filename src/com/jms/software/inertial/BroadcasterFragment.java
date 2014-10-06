@@ -30,6 +30,7 @@ public class BroadcasterFragment extends Fragment{
 	private static final String ARG_HOSTADDRESS = "host_addres";
 	private static final String ARG_PORTNUMBER = "port_number";
 	private static final String ARG_PERIOD = "period";
+//	private static final String COMMAND_HALT = "__halt__";
 
 	private String mHostAddress;
 	private int mPortNumber;
